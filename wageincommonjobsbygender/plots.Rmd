@@ -1,0 +1,64 @@
+---
+title: "plots"
+author: "Jackson Dial"
+date: '2023-06-03'
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Data Source
+
+Data for this visualization was cdownloaded as a .csv from:
+https://datausa.io/profile/naics/restaurants-food-services#wage_sex
+
+## Dependencies
+
+```{r}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(janitor)
+library(plotly)
+library(RColorBrewer)
+```
+
+## Get Data
+
+```{r}
+setwd("C:/Users/jacks/OneDrive/Desktop/Side Hustles/twitterdatavisualizations/randomdataviz/wageincommonjobsbygender")
+dat <- read_csv("WageBySexInCommonJobs.csv") %>% 
+  clean_names()
+```
+
+
+## Plot
+
+```{r ggplotly}
+p1 <-
+  ggplot(dat, aes(x = year, y = average_wage, col = interaction(as.factor(sex):as.factor(pums_occupation)),
+                  group = 1,
+                  text = paste0("Year: ", year, "<br>Sex: ", sex, "<br>Occupation: ", pums_occupation)
+  )) +
+  geom_line(linewidth = 1.5)+
+  theme(legend.position = "none")+
+  scale_color_brewer(palette = "Set3")
+
+ggplotly(p1, tooltip = "text")
+
+```
+
+```{r ggplot2}
+p2 <-
+  ggplot(dat, aes(x = year, y = average_wage, col = interaction(as.factor(sex):as.factor(pums_occupation))
+  )) +
+  geom_line(linewidth = 1.5)+
+  labs(col = "Sex:Occupation",
+       y = "Average Wage",
+       x = "Year")+
+  theme(panel.grid.minor = element_blank())+
+  scale_color_brewer(palette = "Set3")
+p2
+```
+
+
