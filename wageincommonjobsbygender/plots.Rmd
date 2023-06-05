@@ -61,4 +61,19 @@ p2 <-
 p2
 ```
 
+```{r plotly}
+p3 <- plot_ly(dat, x = ~year, y = ~average_wage, color = ~interaction(as.factor(sex), as.factor(pums_occupation)), type = "scatter", mode = "lines") %>%
+  layout(
+    xaxis = list(title = "Year"),
+    yaxis = list(title = "Average Wage"),
+    legend = list(title = "Sex:Occupation"),
+    showlegend = TRUE,
+    hovermode = "closest",
+    plot_bgcolor = "white",
+    paper_bgcolor = "white"
+  )
+
+p3
+```
+
 
