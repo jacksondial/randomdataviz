@@ -1,41 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
-
-# URL = "https://www.basketball-reference.com/players/a/"
-# page = requests.get(URL)
-
-# soup = BeautifulSoup(page.content, "html.parser")
-
-# results = soup.find(id="wrap")
-# print(results.type)
-# content = results.find("div", class_ = "content")
-# print(content.type)
-# table_wrapper = content.find("div", class_ = "table_wrapper")
-# table_containter_is_setup = table_wrapper.find("div", class_ = "table_container is_setup")
-# stats_table = table_containter_is_setup.find("div", class_ = "sortable stats_table now_sortable")
-
-# print(stats_table.prettify())
-
-# Starting now from a single page of one player
-# this is going to loop through all of the a's
-
-
-# root = "https://www.basketball-reference.com"
-# website = f'{root}/players/a'
-# result = requests.get(website)
-# content = result.text
-# soup = BeautifulSoup(content, "html.parser")
-
-# box = soup.find(id = "wrap")
-# box.find_all("a", href = True)
-
-# for link in box.find_all("a", href = True):
-#     link['href']
-
-# links = [link['href'] for link in box.find_all("a", href = True)]
-# print(links)
-
+import sqlite3
 
 url = "https://www.basketball-reference.com/players/a/abdelal01.html"
 
@@ -58,3 +24,87 @@ with open("player_stats.txt", "w") as file:
             file.write(cell.get_text().strip() + "\t")
         file.write("\n")
 
+with open('player_stats.txt', 'r') as file:
+    lines = file.readlines()
+
+# Find the index of the blank line
+blank_line_index = next((index for index, line in enumerate(lines) if line.strip() == ''), None)
+
+if blank_line_index is None:
+    print("Blank line not found in the file.")
+else:
+    # Split the lines into two lists
+    season_stats = lines[:blank_line_index]
+    team_summary = lines[blank_line_index + 1:]
+
+    # Write season_stats to season_by_season_stats.txt
+    with open('season_by_season_stats.txt', 'w') as file:
+        file.writelines(season_stats)
+
+    # Write team_summary to team_summary.txt
+    with open('team_summary.txt', 'w') as file:
+        file.writelines(team_summary)
+
+# get the name of the current player
+
+url = 'https://www.basketball-reference.com/players/a/abdelal01.html'
+response = requests.get(url)
+soup = BeautifulSoup(response.content, 'html.parser')
+player_name_element = soup.find("h1").find("span")
+player_name = player_name_element.text.strip()
+print(player_name)
+con = sqlite3.connect("nba.db")
+
+cur = con.cursor()
+cur.execute("DROP TABLE IF EXISTS season_by_season")
+cur.execute(
+    """
+    CREATE TABLE season_by_season (
+        Season TEXT,
+        Age INTEGER,
+        Tm TEXT,
+        Lg TEXT,
+        Pos TEXT,
+        G INTEGER,
+        GS INTEGER,
+        MP REAL,
+        FG REAL,
+        FGA REAL,
+        FG_percent REAL,
+        `3P` REAL,
+        `3PA` REAL,
+        `3P_percent` REAL,
+        `2P` REAL,
+        `2PA` REAL,
+        `2P_percent` REAL,
+        eFG_percent REAL,
+        FT REAL,
+        FTA REAL,
+        FT_percent REAL,
+        ORB REAL,
+        DRB REAL,
+        TRB REAL,
+        AST REAL,
+        STL REAL,
+        BLK REAL,
+        TOV REAL,
+        PF REAL,
+        PTS REAL,
+        PLAYER VARCHAR(255)
+    )
+    """
+)
+
+with open('season_by_season_stats.txt', 'r') as file:
+    lines = file.readlines()
+    for line in lines[1:]:
+        data = line.strip().split('\t')
+        data.append(player_name)
+        cur.execute('''
+            INSERT INTO season_by_season VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', data)
+
+
+query = cur.execute("SELECT * FROM season_by_season")
+for row in query:
+    print(row)
